@@ -1,27 +1,11 @@
-const express = require('express')
+const express = require("express");
 const Product = require("../model/product");
-const multer = require('multer')
 
-const router = new express.Router()
+const router = new express.Router();
 
-router.get('/', (req, res) => {
-  res.send('<h1>Product data API</h1>')
-})
-
-// // configuring multer
-// const upload = multer({
-//   dest: 'images',
-//   limits: {
-//   fileSize: 1000000
-//   },
-//   fileFilter(req, file, cb) {
-//   if (!file.originalname.match(/\.(png|jpg)$/)) {
-//   return cb(new Error('Please upload a valid image!'))
-//   }
-//   cb(undefined, true)
-//   }
-//  })
- 
+router.get("/", (req, res) => {
+  res.send("<h1>Product data API</h1>");
+});
 
 //Create new product
 router.post("/product", async (req, res) => {
@@ -34,11 +18,54 @@ router.post("/product", async (req, res) => {
   }
 });
 
-//fetch all products
-router.get("/products", async (req, res) => {
+//fetch product by name
+router.get("/product/:name", async (req, res) => {
   try {
-    const products = await Product.find();
-    res.status(200).send(products);
+    const product = await Product.find({ name: req.params.name });
+
+    if (!product) {
+      return res.status(404).send({ error: "Product not found!" });
+    }
+
+    res.status(200).send(product);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+//fetch all products
+router.get("/search", async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    const agg = [
+      {
+        $search: {
+          autocomplete: {
+            query: name,
+            path: "name",
+            fuzzy: {
+              maxEdits: 2,
+            },
+          },
+        },
+      },
+      {
+        $limit: 5,
+      },
+      {
+        
+        $project: {
+          _id: 0,
+          name: 1,
+          description: 1,
+          quantity: 1
+        },
+      },
+    ];
+
+    const response = await Product.aggregate(agg);
+    return res.json(response)
   } catch (e) {
     res.status(400).send(e);
   }
@@ -55,7 +82,7 @@ router.get("/product/:id", async (req, res) => {
   }
 });
 
-//delete prouduct 
+//delete prouduct
 router.delete("/product/:id", async (req, res) => {
   const _id = req.params.id;
   try {
@@ -69,11 +96,13 @@ router.delete("/product/:id", async (req, res) => {
   }
 });
 
-//update product 
+//update product
 router.patch("/product/:id", async (req, res) => {
   const updates = Object.keys(req.body);
   const allowedUpdates = ["name", "quantity", "description"];
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
 
   if (!isValidOperation) {
     return res.status(400).send({ error: "Invalid updates!" });
@@ -87,13 +116,11 @@ router.patch("/product/:id", async (req, res) => {
     if (!product) {
       return res.status(404).send();
     }
-    await product.save()
+    await product.save();
     res.status(200).send(product);
   } catch (e) {
     res.status(400).send(e);
   }
 });
 
-
-
-module.exports = router
+module.exports = router;
