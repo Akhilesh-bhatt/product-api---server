@@ -1,11 +1,27 @@
 const express = require('express')
 const Product = require("../model/product");
+const multer = require('multer')
 
 const router = new express.Router()
 
 router.get('/', (req, res) => {
   res.send('<h1>Product data API</h1>')
 })
+
+// // configuring multer
+// const upload = multer({
+//   dest: 'images',
+//   limits: {
+//   fileSize: 1000000
+//   },
+//   fileFilter(req, file, cb) {
+//   if (!file.originalname.match(/\.(png|jpg)$/)) {
+//   return cb(new Error('Please upload a valid image!'))
+//   }
+//   cb(undefined, true)
+//   }
+//  })
+ 
 
 //Create new product
 router.post("/product", async (req, res) => {
@@ -77,6 +93,7 @@ router.patch("/product/:id", async (req, res) => {
     res.status(400).send(e);
   }
 });
+
 
 
 module.exports = router

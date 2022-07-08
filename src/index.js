@@ -3,7 +3,7 @@ const router = require('./router/productRouter')
 require("./db/mongoose");
 
 const app = express();
-const port = 3000;
+const port = 5000;
 
 app.use(router)
 app.use(express.json());
