@@ -33,7 +33,7 @@ router.get("/product/:name", async (req, res) => {
   }
 });
 
-//fetch all products
+//fuzzy search
 router.get("/search", async (req, res) => {
   try {
     const { name } = req.query;
